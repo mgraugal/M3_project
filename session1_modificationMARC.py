@@ -151,7 +151,7 @@ def label_decision(prediction, method):
         
     else if method == 'pseudo_random'
     
-    values, counts = np.unique(predictions, return_counts=True)
+        values, counts = np.unique(predictions, return_counts=True)
         valids = []
         for x in range(len(values)):
             if abs(counts[x] - max(counts)) <= float(max(counts)) / counts.mean():
