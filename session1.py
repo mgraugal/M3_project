@@ -43,9 +43,8 @@ def train_features(images_filenames, labels, textractor, n_images, is_pca):
     if is_pca:
         print "Apply PCA algorithm to reduce dimensionality"
         pca.fit(d)
-        pca.transform(d)
-    return d, l
-
+        dtrfm = pca.transform(d)
+    return dtrfm, l
 
 # Function: train_SVM()
 # Description:
@@ -72,7 +71,7 @@ def classifier(images_filenames, labels, cextractor, cclf, cstdslr, is_pca, cpca
 
         kpt, des = cextractor.detectAndCompute(gray, None)
         if is_pca:
-            cpca.transform(des)
+            dtrfm = cpca.transform(des)
 
         predictions = cclf.predict(cstdslr.transform(des))
         values, counts = np.unique(predictions, return_counts=True)
