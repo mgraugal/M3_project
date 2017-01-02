@@ -1,0 +1,74 @@
+def read_data(train_files, train_labels, test_files, test_labels):
+    
+    train_images_filenames = cPickle.load(open(train_files,'r'))
+    test_images_filenames = cPickle.load(open(test_files,'r'))
+    train_labels = cPickle.load(open(train_labels,'r'))
+    test_labels = cPickle.load(open(test_labels,'r'))
+
+    print 'Loaded '+str(len(train_images_filenames))+' training images filenames with classes ',set(train_labels)
+    print 'Loaded '+str(len(test_images_filenames))+' testing images filenames with classes ',set(test_labels)
+    
+    return (train_images_filenames, train_labels, test_images_filenames, test_labels)
+
+
+#funció nFold: genera n particiones de training set
+def N_fold(train_images_filenames, train_labels, n):
+    
+    labels, counts = np.unique(train_labels, return_counts=True)
+    
+    #Creamos un diccionario para almacenar los indices de cada label
+    diccionari_labels = {}
+
+    for x in labels:
+        diccionari_labels[x] = [y for y in range(len(train_labels)) if train_labels[y] == x]
+        shuffle(diccionari_labels[x])
+    diccionari_labels
+    elements = [(x,y/n) for x,y in zip(labels, counts)]
+    
+    #Repartimos los indices en n particiones
+    particions = []
+
+    for i in range(n):
+        particio = []
+        for label, amount in elements:
+            if i != n-1:
+                particio += diccionari_labels[label][i*amount:(i+1)*amount]
+            else:
+                particio += diccionari_labels[label][i*amount:]
+        particions.append(particio)
+
+    #Equilibramos la longitud de la última partición, ya que contiene todos los elementos sobrantes i tiende a ser mayor que las demás
+    shuffle(particions[-1])
+
+    remaining = len(particions[-1])/n
+
+    i = 0    
+    while len(particions[-1]) > min([len(x) for x in particions]):
+        i = i%n
+        particions[i].append(particions[-1].pop())
+        i+=1
+
+    #Usamos los índicces para formar el vector de particiones
+    folds = []
+    for indexos in particions:
+        filenames_particion = []
+        labels_particion=[]
+        for index in indexos:
+            filenames_particion.append(train_images_filenames[index])
+            labels_particion.append(train_labels[index])
+        folds.append((filenames_particion, labels_particion))
+    return folds
+    
+    
+    
+import cv2
+import numpy as np
+import cPickle
+import time
+from sklearn.preprocessing import StandardScaler
+from sklearn import svm
+from sklearn import cluster
+from random import shuffle
+
+train_images_filenames, train_labels, test_images_filenames, test_labels = read_data('train_images_filenames.dat', 'train_labels.dat', 'test_images_filenames.dat', 'test_labels.dat')
+folds = N_fold(train_images_filenames, train_labels, 100)
